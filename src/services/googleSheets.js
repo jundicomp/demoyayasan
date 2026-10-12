@@ -362,3 +362,10 @@ export async function saveProfilYayasanToSheet(row, exists) {
   const payload = { ...row, No: 1 };
   return exists ? updateInSheet('yayasan', payload) : addToSheet('yayasan', payload);
 }
+
+// Kirim aksi tulis ke unit TERTENTU (bukan unit aktif) -- dipakai pengisian data contoh.
+export async function postKeUnit(unit, body, target = 'master') {
+  const json = await postToSheet({ ...body, unit }, target);
+  if (!json.ok) throw new Error(json.error || 'Gagal menyimpan data.');
+  return json;
+}

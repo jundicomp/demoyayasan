@@ -10,6 +10,7 @@ import { pindahUnit } from '../../services/unitAktif';
 import { formatRupiah, BULAN_ID, todayWIB } from '../../db/helpers';
 import { exportToExcel } from '../../utils/exportTable';
 import { rekapUnit, SHEETS_MASTER, SHEETS_KEUANGAN } from './rekapYayasan';
+import { isiDataContoh } from './dataContoh';
 
 const jt = (n) => 'Rp ' + (n / 1e6).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + ' jt';
 const persen = (x) => (x === null ? '–' : Math.round(x * 100) + '%');
@@ -19,6 +20,22 @@ export default function DashboardYayasan() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isi, setIsi] = useState(null); // { teks, persen } saat mengisi data contoh
+
+  async function jalankanDataContoh() {
+    if (!window.confirm('Isi semua unit dengan DATA CONTOH fiktif? Cocok untuk demo. Lanjutkan?')) return;
+    setIsi({ teks: 'Memulai...', persen: 0 });
+    try {
+      await isiDataContoh(UNITS, (teks, p) => setIsi({ teks, persen: Math.round(p * 100) }));
+      toast('Data contoh berhasil diisi ke semua unit.');
+      setIsi(null);
+      window.location.reload(); // muat ulang supaya profil yayasan & semua data ikut terbaca
+    } catch (err) {
+      toast('Gagal mengisi data contoh: ' + err.message, 'error');
+      setIsi(null);
+      muat();
+    }
+  }
 
   const muat = useCallback(async () => {
     if (!isConfigured('master') || !isConfigured('keuangan')) { setError('Koneksi Google Sheets belum diatur.'); setLoading(false); return; }
@@ -71,7 +88,28 @@ export default function DashboardYayasan() {
         <div className="card"><div className="card-body" style={{ color: 'var(--red)' }}>Gagal memuat rekap: {error} <button className="btn btn-sm" onClick={muat} style={{ marginLeft: 8 }}>Coba lagi</button></div></div>
       )}
 
-      {data && total && (
+      {data && total && total.siswa === 0 && (
+        <div className="card">
+          <div className="card-body" style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ flex: '1 1 320px' }}>
+              <h3 style={{ margin: 0 }}>Belum ada data di unit mana pun</h3>
+              <p style={{ color: 'var(--muted)', margin: '4px 0 0', fontSize: 13 }}>
+                Mulai dengan mengisi tiap unit lewat menu Unit Sekolah, atau isi semua unit dengan data contoh fiktif untuk keperluan demo
+                (profil, kelas, siswa, tarif, tagihan SPP sejak Juli, dan pembayaran).
+              </p>
+              {isi && (
+                <div style={{ marginTop: 10 }}>
+                  <div className="yys-bar" style={{ width: '100%', height: 10 }}><i style={{ width: `${isi.persen}%`, background: '#1C7A3C' }} /></div>
+                  <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>{isi.persen}% · {isi.teks}</div>
+                </div>
+              )}
+            </div>
+            <button className="btn btn-primary" onClick={jalankanDataContoh} disabled={!!isi}>{isi ? 'Mengisi...' : '✨ Isi Data Contoh'}</button>
+          </div>
+        </div>
+      )}
+
+      {data && total && total.siswa > 0 && (
         <>
           <div className="info-grid-4 yys-kpi">
             <InfoCard icon={IconUsers} color="c-green" value={total.siswa.toLocaleString('id-ID')} label={`Siswa aktif · ${UNITS.length} unit`} />
