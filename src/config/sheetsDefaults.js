@@ -22,11 +22,11 @@
 // (google-apps-script/Code.gs & Code-Keuangan.gs di project ini).
 export const DEFAULT_SHEETS_CONFIG = {
   master: {
-    url: '',
+    url: 'https://script.google.com/macros/s/AKfycbzOw6NXSJvE3EJCvpZTxfV2rrqht0wzVGp7wDrnaxYQm_OqiKZedmfwva8WX73U-D0/exec',
     secret: '123456',
   },
   keuangan: {
-    url: '',
+    url: 'https://script.google.com/macros/s/AKfycbzM-DWJQeCLCeeVRW3VIiKklIxG1rOZF57oGsWRSKMipegIjF4ygzwfOdIi5KLwH9gX/exec',
     secret: '123456',
   },
 };
